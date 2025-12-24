@@ -1,26 +1,29 @@
-name: Daily Nature Post
+name: Daily Nature Automation
 
 on:
   schedule:
-    - cron: '0 0,6,12,18 * * *' # Din mein 4 baar chalega
-  workflow_dispatch: # Manual button testing ke liye
+    - cron: '0 0,6,12,18 * * *' # Indian Time: 5:30 AM, 11:30 AM, 5:30 PM, 11:30 PM approx
+  workflow_dispatch: # Manual test button
 
 jobs:
-  build:
+  run-bot:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - name: Install dependencies
+
+      - name: Install Dependencies
         run: pip install requests
-      - name: Run Script
+
+      - name: Execute Script
         env:
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          AYRSHARE_API_KEY: ${{ secrets.AYRSHARE_API_KEY }}
+          MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
         run: python main.py
