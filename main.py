@@ -2,41 +2,46 @@ import requests
 import random
 import os
 
-# API Configurations (Inhe GitHub Secrets mein daalna hai)
+# API Configurations (GitHub Secrets se aayenge)
 PEXELS_API_KEY = os.getenv('PEXELS_API_KEY')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-AYRSHARE_API_KEY = os.getenv('AYRSHARE_API_KEY')
+MAKE_WEBHOOK_URL = os.getenv('MAKE_WEBHOOK_URL')
 
 def get_nature_image():
+    # Pexels se nature image search karna
     url = "https://api.pexels.com/v1/search?query=nature&per_page=50"
     headers = {"Authorization": PEXELS_API_KEY}
     response = requests.get(url, headers=headers).json()
+    
+    # Randomly ek photo select karna
     image = random.choice(response['photos'])
-    return image['src']['large'], image['alt']
+    img_url = image['src']['large']
+    img_title = image['alt'] if image['alt'] else "Beautiful Nature"
+    return img_url, img_title
 
 def post_to_telegram(img_url, caption):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
     data = {"chat_id": TELEGRAM_CHAT_ID, "photo": img_url, "caption": caption}
     requests.post(url, data=data)
+    print("Sent to Telegram")
 
-def post_to_ayrshare(img_url, caption):
-    url = "https://api.ayrshare.com/api/post"
-    headers = {"Authorization": f"Bearer {AYRSHARE_API_KEY}"}
-    data = {
-        "post": caption,
-        "mediaUrls": [img_url],
-        "platforms": ["facebook", "instagram", "twitter"] # Jo aapne connect kiye hon
+def post_to_make_webhook(img_url, title, caption):
+    # Make.com ko data bhejna
+    payload = {
+        "image_url": img_url,
+        "title": title,
+        "caption": caption
     }
-    requests.post(url, json=data, headers=headers)
+    requests.post(MAKE_WEBHOOK_URL, json=payload)
+    print("Sent to Make.com Webhook")
 
 if __name__ == "__main__":
-    img_url, title = get_nature_image()
+    image_url, title = get_nature_image()
     
-    # AI-style Description & Hashtags
-    description = f"🌿 {title}\n\nNature is the art of God. ✨\n\n#nature #photography #wildlife #serenity #naturelovers"
+    # Automated Caption and Hashtags
+    full_caption = f"🌿 {title}\n\nNature's beauty at its best! ✨\n\n#nature #photography #greenery #earth #naturelovers"
     
-    # Posting
-    post_to_telegram(img_url, description)
-    post_to_ayrshare(img_url, description)
-    print("Post successful!")
+    # Dono platforms par post karein
+    post_to_telegram(image_url, full_caption)
+    post_to_make_webhook(image_url, title, full_caption)
